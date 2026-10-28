@@ -3,12 +3,26 @@ import { useTranslation } from 'react-i18next';
 import { endpoint } from '$app/common/helpers';
 import { request } from '$app/common/helpers/request';
 import { useAdmin } from '$app/common/hooks/permissions/useHasPermission';
+import { useCompanyChanges } from '$app/common/hooks/useCompanyChanges';
+import { useDisableSettingsField } from '$app/common/hooks/useDisableSettingsField';
 import { Card, Element } from '$app/components/cards';
-import { Button } from '$app/components/forms';
+import { Button, InputField } from '$app/components/forms';
+import { PropertyCheckbox } from '$app/components/PropertyCheckbox';
+import { SettingsLabel } from '$app/components/SettingsLabel';
+import { useHandleCurrentCompanyChangeProperty } from '../../../common/hooks/useHandleCurrentCompanyChange';
+
+const LEGEND_SETTINGS = [
+  ['cfe_uy_verification_url', 'e-Ticket verification URL'],
+  ['cfe_uy_issuer_since', 'Fecha emisor (date or resolution number)'],
+  ['cfe_uy_iva_al_dia_text', 'IVA standing text (optional)'],
+] as const;
 
 export function CfeUySettings() {
   const [t] = useTranslation();
   const { isAdmin } = useAdmin();
+  const company = useCompanyChanges();
+  const handleChange = useHandleCurrentCompanyChangeProperty();
+  const disableSettingsField = useDisableSettingsField();
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['/api/v1/einvoice/cfe_uy/health'],
     queryFn: () =>
@@ -53,6 +67,26 @@ export function CfeUySettings() {
           )}
         </div>
       </Element>
+      {LEGEND_SETTINGS.map(([key, label]) => (
+        <Element
+          key={key}
+          leftSide={
+            <PropertyCheckbox
+              propertyKey={key}
+              labelElement={
+                <SettingsLabel label={t(key, { defaultValue: label })} />
+              }
+              defaultValue=""
+            />
+          }
+        >
+          <InputField
+            value={company?.settings[key] || ''}
+            onValueChange={(value) => handleChange(`settings.${key}`, value)}
+            disabled={disableSettingsField(key)}
+          />
+        </Element>
+      ))}
     </Card>
   );
 }

@@ -73,7 +73,10 @@ export function useBlankInvoiceQuery(options?: GenericQueryOptions) {
 
     staleTime: Infinity,
 
-    enabled: resolveBlankQueryEnabled(options, hasPermission('create_invoice')),
+    enabled: resolveBlankQueryEnabled(
+      options,
+      hasPermission('create_invoice')
+    ),
   });
 }
 
