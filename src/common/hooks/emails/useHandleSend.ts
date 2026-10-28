@@ -15,6 +15,7 @@ import { endpoint } from '$app/common/helpers';
 import { request } from '$app/common/helpers/request';
 import { toast } from '$app/common/helpers/toast/toast';
 import { ValidationBag } from '$app/common/interfaces/validation-bag';
+import { useConfirmCfeEmission } from '../useCompanyCfeUy';
 import { $refetch, keys } from '../useRefetch';
 
 interface Params {
@@ -23,8 +24,9 @@ interface Params {
 
 export function useHandleSend({ setErrors }: Params) {
   const navigate = useNavigate();
+  const { confirmIds } = useConfirmCfeEmission();
 
-  return (
+  return async (
     body: string,
     entity: string,
     entityId: string,
@@ -33,6 +35,14 @@ export function useHandleSend({ setErrors }: Params) {
     redirectUrl: string,
     ccEmail: string
   ) => {
+    if (entity === 'invoice') {
+      try {
+        if (!(await confirmIds([entityId]))) return;
+      } catch {
+        toast.error();
+        return;
+      }
+    }
     toast.processing();
     setErrors(undefined);
 

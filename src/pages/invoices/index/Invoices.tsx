@@ -8,6 +8,8 @@
  * @license https://www.elastic.co/licensing/elastic-license
  */
 
+import { hasCfe } from '$app/common/helpers/cfe-uy';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { useTitle } from '$app/common/hooks/useTitle';
 import { useInvoiceEditorPaths } from '$app/common/hooks/useInvoiceEditor';
 import { DataTable } from '$app/components/DataTable';
@@ -88,6 +90,7 @@ export default function Invoices() {
   const customBulkActions = useCustomBulkActions();
   const { footerColumns, allFooterColumns } = useFooterColumns();
   const verifactuEnabled = useCompanyVerifactu();
+  const cfeEnabled = useCompanyCfeUy();
 
   const selectedColumns =
     reactSettings?.react_table_columns?.invoice || defaultColumns;
@@ -175,12 +178,12 @@ export default function Invoices() {
           setIsConfirmActionModalOpen(true);
         }}
         showDelete={(invoice) =>
-          Boolean(!verifactuEnabled) ||
-          (verifactuEnabled && invoice.status_id === InvoiceStatus.Draft)
+          (!cfeEnabled || !hasCfe(invoice)) &&
+          (!verifactuEnabled || invoice.status_id === InvoiceStatus.Draft)
         }
         showRestore={(invoice) =>
-          Boolean(!verifactuEnabled) ||
-          (verifactuEnabled && invoice.status_id === InvoiceStatus.Draft)
+          (!cfeEnabled || (invoice.archived_at > 0 && !invoice.is_deleted)) &&
+          (!verifactuEnabled || invoice.status_id === InvoiceStatus.Draft)
         }
         enableSavingLatestDataForNavigation
       />

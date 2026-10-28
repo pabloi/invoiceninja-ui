@@ -333,6 +333,9 @@ export interface Settings {
   client_initiated_payments: boolean;
   client_initiated_payments_minimum: number;
   e_invoice_type: string;
+  cfe_uy_verification_url?: string;
+  cfe_uy_issuer_since?: string;
+  cfe_uy_iva_al_dia_text?: string;
   default_expense_payment_type_id: string;
   enable_e_invoice: boolean;
   france_reporting_enabled: boolean;

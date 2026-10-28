@@ -14,15 +14,18 @@ import { invalidationQueryAtom } from '$app/common/atoms/data-table';
 import { endpoint } from '$app/common/helpers';
 import { request } from '$app/common/helpers/request';
 import { toast } from '$app/common/helpers/toast/toast';
+import { useConfirmCfeEmission } from '$app/common/hooks/useCompanyCfeUy';
 import { $refetch } from '$app/common/hooks/useRefetch';
 import { Invoice } from '$app/common/interfaces/invoice';
 
 export function useMarkSent() {
   const queryClient = useQueryClient();
+  const { confirm } = useConfirmCfeEmission();
 
   const invalidateQueryValue = useAtomValue(invalidationQueryAtom);
 
   return (invoice: Invoice) => {
+    if (!confirm([invoice])) return;
     toast.processing();
 
     request(

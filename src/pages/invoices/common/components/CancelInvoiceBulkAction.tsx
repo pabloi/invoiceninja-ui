@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdCancel } from 'react-icons/md';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { useCompanyVerifactu } from '$app/common/hooks/useCompanyVerifactu';
 import { Invoice } from '$app/common/interfaces/invoice';
 import { useBulk } from '$app/common/queries/invoices';
@@ -33,11 +34,12 @@ export function CancelInvoiceBulkAction({
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const bulk = useBulk();
   const verifactuEnabled = useCompanyVerifactu();
+  const cfeEnabled = useCompanyCfeUy();
 
   const handleCancel = () => {
     // If Verifactu is enabled, show modal to get cancellation reason
     // Otherwise, cancel directly without modal
-    if (verifactuEnabled) {
+    if (verifactuEnabled || cfeEnabled) {
       setIsCancelModalOpen(true);
     } else {
       bulk(selectedIds, 'cancel');
@@ -60,7 +62,7 @@ export function CancelInvoiceBulkAction({
         {t('cancel_invoice')}
       </DropdownElement>
 
-      {verifactuEnabled && (
+      {(verifactuEnabled || cfeEnabled) && (
         <CancelInvoiceModal
           visible={isCancelModalOpen}
           onClose={() => setIsCancelModalOpen(false)}

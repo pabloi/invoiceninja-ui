@@ -120,6 +120,12 @@ export interface SyncInvitation {
 }
 
 export interface Backup {
+  cfe_tipo?: string | number;
+  cfe_serie?: string;
+  cfe_numero?: string | number;
+  cfe_status?: 'pending' | 'emitted' | 'rejected' | 'failed';
+  cfe_error?: string | null;
+  cfe_link_qr?: string | null;
   guid?: string;
   parent_invoice_id?: string;
   parent_invoice_number?: string;

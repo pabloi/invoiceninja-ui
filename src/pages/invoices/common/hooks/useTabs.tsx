@@ -13,6 +13,7 @@ import { useParams } from 'react-router-dom';
 import { InvoiceStatus } from '$app/common/enums/invoice-status';
 import { route } from '$app/common/helpers/route';
 import { useHasPermission } from '$app/common/hooks/permissions/useHasPermission';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { useCompanyVerifactu } from '$app/common/hooks/useCompanyVerifactu';
 import { useCurrentCompany } from '$app/common/hooks/useCurrentCompany';
 import { useEntityAssigned } from '$app/common/hooks/useEntityAssigned';
@@ -35,6 +36,7 @@ export function useTabs(params: Params) {
   const hasPermission = useHasPermission();
   const entityAssigned = useEntityAssigned();
   const verifactuEnabled = useCompanyVerifactu();
+  const cfeEnabled = useCompanyCfeUy();
 
   const { id } = useParams();
   const { invoice, eInvoiceValidationResponse } = params;
@@ -100,6 +102,11 @@ export function useTabs(params: Params) {
           )}
         </div>
       ),
+    },
+    {
+      name: 'CFE (Uruguay)',
+      href: route('/invoices/:id/cfe', { id }),
+      enabled: cfeEnabled,
     },
     {
       name: t('quickbooks'),
