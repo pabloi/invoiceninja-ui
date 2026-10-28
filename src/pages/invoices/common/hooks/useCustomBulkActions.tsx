@@ -25,8 +25,13 @@ import {
 import { EntityState } from '$app/common/enums/entity-state';
 import { InvoiceStatus } from '$app/common/enums/invoice-status';
 import { getEntityState } from '$app/common/helpers';
+import { hasCfe } from '$app/common/helpers/cfe-uy';
 import { toast } from '$app/common/helpers/toast/toast';
-import { useHasPermission } from '$app/common/hooks/permissions/useHasPermission';
+import {
+  useAdmin,
+  useHasPermission,
+} from '$app/common/hooks/permissions/useHasPermission';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { useCompanyVerifactu } from '$app/common/hooks/useCompanyVerifactu';
 import { useDisplayRunTemplateActions } from '$app/common/hooks/useDisplayRunTemplateActions';
 import { Invoice } from '$app/common/interfaces/invoice';
@@ -51,6 +56,8 @@ export const useCustomBulkActions = () => {
   const documentsBulk = useDocumentsBulk();
 
   const hasPermission = useHasPermission();
+  const cfeEnabled = useCompanyCfeUy();
+  const { isAdmin } = useAdmin();
 
   const { shouldBeVisible: shouldBeRunTemplateActionVisible } =
     useDisplayRunTemplateActions();
@@ -99,6 +106,7 @@ export const useCustomBulkActions = () => {
   };
 
   const showCancelOption = (invoices: Invoice[]) => {
+    if (cfeEnabled && !isAdmin && invoices.some(hasCfe)) return false;
     if (verifactuEnabled) {
       return !invoices.some(
         (invoice) =>
@@ -154,6 +162,10 @@ export const useCustomBulkActions = () => {
   const verifactuEnabled = useCompanyVerifactu();
 
   const showRestoreBulkAction = (invoices: Invoice[]) => {
+    if (cfeEnabled)
+      return invoices.every(
+        (invoice) => invoice.archived_at > 0 && !invoice.is_deleted
+      );
     if (verifactuEnabled) {
       return invoices.every(
         (invoice) => invoice.archived_at > 0 && !invoice.is_deleted
@@ -173,6 +185,7 @@ export const useCustomBulkActions = () => {
   };
 
   const showDeleteBulkAction = (invoices: Invoice[]) => {
+    if (cfeEnabled && invoices.some(hasCfe)) return false;
     if (verifactuEnabled) {
       return invoices.every(
         (invoice) => invoice.status_id === InvoiceStatus.Draft

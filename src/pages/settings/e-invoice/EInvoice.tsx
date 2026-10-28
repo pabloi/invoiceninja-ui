@@ -15,9 +15,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
+import { useColorScheme } from '$app/common/colors';
 import { enterprisePlan } from '$app/common/guards/guards/enterprise-plan';
 import { whiteLabelPlan } from '$app/common/guards/guards/white-label';
 import { endpoint, isHosted, isSelfHosted } from '$app/common/helpers';
+import { isPeppolCountryAllowed } from '$app/common/helpers/peppol-countries';
 import { request } from '$app/common/helpers/request';
 import { toast } from '$app/common/helpers/toast/toast';
 import { useCurrentSettingsLevel } from '$app/common/hooks/useCurrentSettingsLevel';
@@ -30,8 +32,10 @@ import {
 } from '$app/common/stores/slices/company-users';
 import { Card, Element } from '$app/components/cards';
 import { PaymentMeans } from '$app/components/e-invoice/PaymentMeans';
-import { InputField, Link, SelectField } from '$app/components/forms';
+import { Button, InputField, Link, SelectField } from '$app/components/forms';
 import Toggle from '$app/components/forms/Toggle';
+import { CloudUpload } from '$app/components/icons/CloudUpload';
+import { Trash } from '$app/components/icons/Trash';
 import { Settings } from '$app/components/layouts/Settings';
 import { PropertyCheckbox } from '$app/components/PropertyCheckbox';
 import { SettingsLabel } from '$app/components/SettingsLabel';
@@ -41,16 +45,12 @@ import {
   useHandleCompanySave,
 } from '../common/hooks/useHandleCompanySave';
 import { useHandleCurrentCompanyChangeProperty } from '../common/hooks/useHandleCurrentCompanyChange';
+import { CfeUySettings } from './common/components/CfeUySettings';
 import { EUTaxDetails } from './common/components/EUTaxDetails';
 import { FranceReporting } from './common/components/FranceReporting';
 import { PEPPOLPlanBanner } from './common/components/PEPPOLPlanBanner';
 import { Onboarding } from './peppol/Onboarding';
 import { Preferences } from './peppol/Preferences';
-import { isPeppolCountryAllowed } from '$app/common/helpers/peppol-countries';
-import { CloudUpload } from '$app/components/icons/CloudUpload';
-import { useColorScheme } from '$app/common/colors';
-import { Trash } from '$app/components/icons/Trash';
-import { Button } from '$app/components/forms';
 
 export type EInvoiceType = {
   [key: string]: string | number | EInvoiceType;
@@ -63,6 +63,7 @@ export interface EInvoiceComponent {
 const INVOICE_TYPES = {
   PEPPOL: 'PEPPOL',
   VERIFACTU: 'VERIFACTU',
+  CFE_UY: 'CFE (Uruguay)',
   FACT1: 'FACT1',
   EN16931: 'EN16931',
   XInvoice_3_0: 'XInvoice_3.0',
@@ -591,6 +592,7 @@ export function EInvoice() {
         entity="company"
       />
 
+      {company?.settings.e_invoice_type === 'CFE_UY' && <CfeUySettings />}
       <EUTaxDetails />
     </Settings>
   );

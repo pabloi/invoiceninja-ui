@@ -19,6 +19,7 @@ import { Invoice } from '$app/common/interfaces/invoice';
 import { EmailType } from '$app/pages/invoices/common/components/SendEmailModal';
 import { invalidationQueryAtom } from '../atoms/data-table';
 import { toast } from '../helpers/toast/toast';
+import { useConfirmCfeEmission } from '../hooks/useCompanyCfeUy';
 import { $refetch } from '../hooks/useRefetch';
 import { resolveBlankQueryEnabled } from './blank-query-options';
 
@@ -72,10 +73,7 @@ export function useBlankInvoiceQuery(options?: GenericQueryOptions) {
 
     staleTime: Infinity,
 
-    enabled: resolveBlankQueryEnabled(
-      options,
-      hasPermission('create_invoice')
-    ),
+    enabled: resolveBlankQueryEnabled(options, hasPermission('create_invoice')),
   });
 }
 
@@ -103,10 +101,11 @@ interface Params {
 }
 
 export function useBulk(params?: Params) {
+  const { confirmIds } = useConfirmCfeEmission();
   const queryClient = useQueryClient();
   const invalidateQueryValue = useAtomValue(invalidationQueryAtom);
 
-  return (
+  return async (
     ids: string[],
     action:
       | 'archive'
@@ -122,6 +121,14 @@ export function useBulk(params?: Params) {
     emailType?: EmailType,
     additionalParams?: Record<string, unknown>
   ) => {
+    if (['email', 'mark_sent', 'mark_paid'].includes(action)) {
+      try {
+        if (!(await confirmIds(ids))) return;
+      } catch {
+        toast.error();
+        return;
+      }
+    }
     toast.processing();
 
     request('POST', endpoint('/api/v1/invoices/bulk'), {

@@ -11,6 +11,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdOutlineWarning } from 'react-icons/md';
+import { CFE_CANCELLATION_WARNING } from '$app/common/helpers/cfe-uy';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { Button } from '$app/components/forms/Button';
 import { InputField } from '$app/components/forms/InputField';
 import { Icon } from '$app/components/icons/Icon';
@@ -24,6 +26,7 @@ interface Props {
 
 export function CancelInvoiceModal({ visible, onClose, onConfirm }: Props) {
   const [t] = useTranslation();
+  const cfeEnabled = useCompanyCfeUy();
   const [cancellationReason, setCancellationReason] = useState('');
 
   const handleConfirm = () => {
@@ -41,12 +44,15 @@ export function CancelInvoiceModal({ visible, onClose, onConfirm }: Props) {
       <div className="flex items-center">
         <Icon element={MdOutlineWarning} color="red" size={48} />
         <span className="font-medium text-sm ml-2 text-red-500">
-          Esto cancelará la factura y creará una factura rectificativa por el
-          importe total de la factura
+          {cfeEnabled
+            ? t('cfe_cancellation_warning', {
+                defaultValue: CFE_CANCELLATION_WARNING,
+              })
+            : 'Esto cancelará la factura y creará una factura rectificativa por el importe total de la factura'}
         </span>
       </div>
       <InputField
-        label="Motivo de la rectificación"
+        label={cfeEnabled ? t('reason') : 'Motivo de la rectificación'}
         value={cancellationReason}
         changeOverride={true}
         onValueChange={(value: string) => setCancellationReason(value)}

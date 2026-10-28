@@ -31,18 +31,20 @@ import {
 } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { EntityState } from '$app/common/enums/entity-state';
-import { useInvoiceEditorPaths } from '$app/common/hooks/useInvoiceEditor';
 import { InvoiceStatus } from '$app/common/enums/invoice-status';
 import { getEntityState } from '$app/common/helpers';
+import { hasCfe } from '$app/common/helpers/cfe-uy';
 import { route } from '$app/common/helpers/route';
 import {
   useAdmin,
   useHasPermission,
 } from '$app/common/hooks/permissions/useHasPermission';
+import { useCompanyCfeUy } from '$app/common/hooks/useCompanyCfeUy';
 import { useCompanyVerifactu } from '$app/common/hooks/useCompanyVerifactu';
 import { useCurrentCompany } from '$app/common/hooks/useCurrentCompany';
 import { useDisplayRunTemplateActions } from '$app/common/hooks/useDisplayRunTemplateActions';
 import { useEntityPageIdentifier } from '$app/common/hooks/useEntityPageIdentifier';
+import { useInvoiceEditorPaths } from '$app/common/hooks/useInvoiceEditor';
 import { Invoice } from '$app/common/interfaces/invoice';
 import { useBulk } from '$app/common/queries/invoices';
 import { Divider } from '$app/components/cards/Divider';
@@ -99,6 +101,7 @@ export function useActions(params?: Params) {
   const company = useCurrentCompany();
   const { isAdmin, isOwner } = useAdmin();
   const verifactuEnabled = useCompanyVerifactu();
+  const cfeEnabled = useCompanyCfeUy();
   const shouldDisplayClientGatewaysAndAutoBill =
     useShouldDisplayClientGatewaysAndAutoBill();
 
@@ -507,6 +510,7 @@ export function useActions(params?: Params) {
     (invoice: Invoice) =>
       (isEditPage || Boolean(showCommonBulkAction)) &&
       invoice.archived_at > 0 &&
+      (!cfeEnabled || !invoice.is_deleted) &&
       invoice.status_id !== InvoiceStatus.Cancelled && (
         <EntityActionElement
           {...(!dropdown && {
@@ -527,6 +531,7 @@ export function useActions(params?: Params) {
     (invoice: Invoice) =>
       (isEditPage || Boolean(showCommonBulkAction)) &&
       !invoice.is_deleted &&
+      (!cfeEnabled || !hasCfe(invoice)) &&
       (!verifactuEnabled ||
         (verifactuEnabled && invoice.status_id === InvoiceStatus.Draft)) && (
         <EntityActionElement
@@ -548,6 +553,7 @@ export function useActions(params?: Params) {
     (invoice: Invoice) =>
       (invoice.status_id === InvoiceStatus.Sent ||
         invoice.status_id === InvoiceStatus.Partial) &&
+      (!cfeEnabled || !hasCfe(invoice) || isAdmin) &&
       !['R1', 'R2'].includes(invoice.backup?.document_type ?? '') &&
       (invoice.backup?.child_invoice_ids?.length ?? 0) === 0 && (
         <EntityActionElement
@@ -559,7 +565,7 @@ export function useActions(params?: Params) {
           onClick={() => {
             // If Verifactu is enabled, show modal to get cancellation reason
             // Otherwise, cancel directly without modal
-            if (verifactuEnabled) {
+            if (verifactuEnabled || cfeEnabled) {
               openCancelModal(invoice.id);
             } else {
               bulk([invoice.id], 'cancel');
@@ -618,7 +624,7 @@ export function useActions(params?: Params) {
     actions,
     modal: (
       <>
-        {verifactuEnabled && (
+        {(verifactuEnabled || cfeEnabled) && (
           <CancelInvoiceModal
             visible={isCancelModalOpen}
             onClose={closeCancelModal}

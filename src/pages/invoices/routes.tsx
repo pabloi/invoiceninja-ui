@@ -16,6 +16,7 @@ import { assigned } from '$app/common/guards/guards/assigned';
 import { enabled } from '$app/common/guards/guards/enabled';
 import { or } from '$app/common/guards/guards/or';
 import { permission } from '$app/common/guards/guards/permission';
+import CfeUy from './edit/components/CfeUy';
 
 const Invoices = lazy(() => import('$app/pages/invoices/index/Invoices'));
 const Invoice = lazy(() => import('$app/pages/invoices/Invoice'));
@@ -173,6 +174,7 @@ export const invoiceRoutes = (
       <Route path="edit" element={<Edit />} />
       <Route path="e_invoice" element={<EInvoice />} />
       <Route path="verifactu" element={<Verifactu />} />
+      <Route path="cfe" element={<CfeUy />} />
       <Route path="quickbooks" element={<Quickbooks />} />
       <Route path="documents" element={<Documents />} />
       <Route path="settings" element={<Settings />} />
